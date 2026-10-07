@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSearch Hub — Enterprise Hybrid Search Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">OS</div>
+      <div>
+        <h1>OmniSearch Hub <span>Enterprise Hybrid Engine</span></h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnReindex" title="Atomic Index Reindexing">
+        ⚡ Zero-Downtime Reindex
+      </button>
+      <a href="http://localhost:5601/app/dev_tools#/console" target="_blank" class="btn">
+        Kibana Console ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Sidebar Facets -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Faceted Navigation</div>
+
+      <div class="filter-group">
+        <label class="filter-label">Categories</label>
+        <div class="pills" id="categoryPills">
+          <div class="pill active" data-cat="">All</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Brands</label>
+        <div class="pills" id="brandPills">
+          <div class="pill active" data-brand="">All</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Price Range (<span id="priceLabel">Any</span>)</label>
+        <input type="range" id="priceRange" min="50" max="3500" step="50" value="3500" style="accent-color: var(--accent-cyan); cursor: pointer;">
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Sort Order</label>
+        <select id="sortSelect" class="select">
+          <option value="_score">Relevance (_score desc)</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="rating_desc">Highest Rated</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        <label for="inStockOnly" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">In-Stock Only</label>
+        <input type="checkbox" id="inStockOnly" style="accent-color: var(--accent-cyan); transform: scale(1.2); cursor: pointer;">
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="main-content">
+      <!-- Search Box Card -->
+      <div class="search-card">
+        <div class="search-top">
+          <div class="search-wrapper">
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input" 
+              placeholder="Search products (e.g. 'macbook', 'wireless headphones', 'titanium', 'samnsug')..."
+              autocomplete="off"
+            />
+            <div class="autocomplete" id="autocompleteDropdown"></div>
+          </div>
+          <!-- Mode Switcher -->
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeBtnHybrid" title="BM25 Keywords + 384-dim Dense Vector kNN Search">
+              🧠 Hybrid Vector
+            </button>
+            <button class="mode-btn" id="modeBtnKeyword" title="Standard Lucene BM25 Full-Text Search">
+              🔤 BM25 Text
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Controls -->
+      <div class="view-tabs">
+        <div class="tab-group">
+          <button class="tab-btn active" id="tabHits">Product Catalog</button>
+          <button class="tab-btn" id="tabDsl">Query DSL Inspector</button>
+          <button class="tab-btn" id="tabAnalytics">Analytics & Aggregations</button>
+        </div>
+        <div class="status-meta" id="statusMeta">Initializing...</div>
+      </div>
+
+      <!-- Grid Results -->
+      <div class="hits-grid" id="hitsGrid"></div>
+
+      <!-- Query DSL Inspector View -->
+      <div class="code-inspector" id="dslInspector"></div>
+
+      <!-- Analytics & Aggregations Tab -->
+      <div class="analytics-view" id="analyticsView">
+        <div class="stats-cards">
+          <div class="stat-card">
+            <h4>Total Items</h4>
+            <div id="statCount">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Average Price</h4>
+            <div id="statAvg">$0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Lowest Price</h4>
+            <div id="statMin">$0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Highest Price</h4>
+            <div id="statMax">$0</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
