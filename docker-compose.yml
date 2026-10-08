@@ -35,8 +35,29 @@ services:
     networks:
       - elastic-net
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"     # AMQP protocol port
+      - "15672:15672"   # RabbitMQ Management Web UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - elastic-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
   esdata:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:
