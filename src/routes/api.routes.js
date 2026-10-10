@@ -4,7 +4,7 @@ import { executeHybridSearch, executeAutocomplete } from '../services/search.ser
 import { reindexWithZeroDowntime } from '../services/index.service.js';
 import { seedProductsCatalog } from '../services/seeder.service.js';
 import { ALIAS_NAME } from '../config/index-settings.js';
-
+import { rabbitMQService, ROUTING_KEYS } from '../services/rabbitmq.service.js';
 const router = express.Router();
 
 /**
@@ -89,6 +89,55 @@ router.post('/admin/seed', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+
+/**
+ * POST /api/v1/products
+ * Asynchronously queues a product for background indexing via RabbitMQ
+ */
+router.post('/products', async (req, res) => {
+  try {
+    const product = req.body;
+
+    // Fast validation: Reject obviously bad requests before queuing
+    if (!product || !product.title) {
+      return res.status(400).json({ error: 'Product title is required' });
+    }
+
+    // Build the payload
+    const productId = product.id || `prod_${Date.now()}`;
+    const payload = {
+      id: productId,
+      title: product.title,
+      description: product.description || '',
+      category: product.category || 'General',
+      brand: product.brand || 'Generic',
+      price: Number(product.price) || 0,
+      inStock: product.inStock !== false,
+      timestamp: new Date().toISOString(),
+    };
+
+    // 1. PUBLISH TO RABBITMQ (Non-blocking, takes ~2ms)
+    // We send to the exchange with routing key "doc.index"
+    const { messageId } = await rabbitMQService.publish(
+      ROUTING_KEYS.DOC_INDEX,
+      payload
+    );
+
+    // 2. RESPOND WITH 202 ACCEPTED
+    // 202 tells the client: "We got it, accepted it, and are processing it in the background"
+    res.status(202).json({
+      status: 'accepted',
+      message: 'Product accepted and queued for indexing in the background',
+      jobId: messageId,
+      productId: productId,
+    });
+  } catch (err) {
+    console.error('Failed to queue product:', err);
+    res.status(500).json({ error: err.message });
+  }
+  
 });
 
 export default router;
